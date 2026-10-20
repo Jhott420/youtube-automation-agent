@@ -58,3 +58,15 @@ def upload_video(video_path, title, description):
     response = request.execute()
     print("Upload success:", response.get("id"))
     return response.get("id")
+
+def set_thumbnail(video_id, thumbnail_path):
+    # Custom thumbnails need a phone-verified channel, so a failure here shouldn't fail the run.
+    try:
+        youtube = get_youtube_service()
+        youtube.thumbnails().set(
+            videoId=video_id,
+            media_body=MediaFileUpload(thumbnail_path, mimetype="image/jpeg")
+        ).execute()
+        print("Thumbnail set.")
+    except Exception as error:
+        print(f"Could not set thumbnail (verify your channel at youtube.com/verify): {error}")

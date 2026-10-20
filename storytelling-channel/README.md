@@ -5,12 +5,26 @@ A daily AI storytelling YouTube automation for the serialized mystery **The Last
 Every day GitHub Actions:
 
 1. Reads `series_bible.json` (the world and rules) and `series_state.json` (where the story left off)
-2. Writes the next episode's title and script with OpenAI (`story_engine.py`)
-3. Narrates it with Google TTS and renders a 1280x720 video (`generate_video.py`)
-4. Uploads it to YouTube as **private** (`upload_video.py`)
+2. Writes the next episode's title and script (`story_engine.py`)
+3. Generates scene images, narrates the story and renders a 1280x720 video with a thumbnail (`generate_video.py`)
+4. Uploads it to YouTube as **private** and sets the thumbnail (`upload_video.py`)
 5. Commits the updated `series_state.json` back to the repo so tomorrow's episode continues the story
 
 Nothing runs on your phone. You manage everything from the GitHub app or Safari.
+
+## AI providers
+
+A free-tier **`GEMINI_API_KEY`** is enough to run the whole channel. Get one at https://aistudio.google.com/apikey.
+
+| Job | Provider order (first one configured wins) | Gemini model |
+| --- | --- | --- |
+| Story + title | OpenAI → Gemini | `gemini-3.7-flash` |
+| Narration | ElevenLabs → OpenAI → Gemini → gTTS (free, no key) | `gemini-3.1-flash-tts-preview`, voice `Kore` (24 kHz, encoded to MP3 with the FFmpeg bundled with moviepy) |
+| Scene images + thumbnail | OpenAI → Gemini → styled title cards | `gemini-3.1-flash-image` |
+
+- If image generation fails (for example, your Gemini plan doesn't include images), the episode still publishes with title-card visuals.
+- Models and voice can be changed without editing code: add repo **Variables** (Settings > Secrets and variables > Actions > **Variables** tab) named `GEMINI_TEXT_MODEL`, `GEMINI_IMAGE_MODEL`, `GEMINI_TTS_MODEL`, `GEMINI_TTS_VOICE`, `ELEVENLABS_TTS_MODEL` or `SCENE_IMAGE_COUNT` (default 6; `0` turns images off). See `.env.example`.
+- Long scripts are narrated in ~3,000-character parts and joined, so one episode uses about 5 TTS requests, 3 text requests and up to 6 image requests per day.
 
 ## Files
 
@@ -18,8 +32,9 @@ Nothing runs on your phone. You manage everything from the GitHub app or Safari.
 | --- | --- |
 | `run_daily.py` | Entry point the workflow runs |
 | `story_engine.py` | Title + script generation, series state |
-| `generate_video.py` | Voiceover + video rendering |
-| `upload_video.py` | YouTube upload |
+| `generate_video.py` | Scene images, voiceover, thumbnail, video rendering |
+| `upload_video.py` | YouTube upload + thumbnail |
+| `providers.py` | Gemini / OpenAI / ElevenLabs / gTTS calls and provider order |
 | `auth.py` | Optional one-time helper to get a refresh token on a computer |
 | `series_bible.json` | Series world, tone and rules (edit to steer the story) |
 | `series_state.json` | Current episode number and story so far (updated automatically) |
@@ -36,10 +51,11 @@ Nothing runs on your phone. You manage everything from the GitHub app or Safari.
 6. Download the JSON and save it as `client_secret.json`
 7. Keep it private. **Do not commit `client_secret.json`** (it is in `.gitignore`). You only need it to read the client ID and secret, or to run `auth.py`.
 8. Add these repo secrets:
-   - OPENAI_API_KEY
+   - GEMINI_API_KEY (or OPENAI_API_KEY; either one is enough)
    - YOUTUBE_CLIENT_ID
    - YOUTUBE_CLIENT_SECRET
    - YOUTUBE_REFRESH_TOKEN
+   - Optional: ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID for premium narration
 9. Run the workflow manually once
 10. If it works, switch to public
 
@@ -76,7 +92,8 @@ The GitHub mobile app cannot edit secrets, so use Safari:
 - **Change the time:** edit the `cron` line in `.github/workflows/daily_story_upload.yml`. It is UTC; `0 9 * * *` is 09:00 UTC daily.
 - **Pause:** Actions > *Daily Storytelling Upload* > "..." > **Disable workflow**.
 - **Go public:** change `"privacyStatus": "private"` to `"public"` in `upload_video.py` once you are happy with a few episodes.
-- **Add visuals:** upload `.mp4`/`.mov` clips you have the rights to into `assets/stock/`. Up to four are used and cycled under the narration. Without them, styled title cards are used.
+- **Visuals:** AI scene images are used when an image provider works. Otherwise, `.mp4`/`.mov` clips you have the rights to in `assets/stock/` are used (up to four, cycled under the narration). Without either, styled title cards are used.
+- **Thumbnails:** YouTube only accepts custom thumbnails from phone-verified channels (youtube.com/verify). Until then the run logs a warning and YouTube picks a frame.
 
 ## Running locally (optional)
 
@@ -96,5 +113,6 @@ Requires ImageMagick (with the `@*` path policy removed from `policy.xml`), ffmp
 - Let the series build over time
 - YouTube API projects get 10,000 quota units/day by default; one upload costs about 1,600, so one video a day is well within limits
 - New, unverified API projects may have uploads locked to private until Google audits the app. If videos stay private after you switch to public, request an audit in the YouTube API Services form
+- Free-tier Gemini has daily request limits; one episode a day stays within them for text and speech. Check current limits at https://ai.google.dev/gemini-api/docs/rate-limits
 - A typical episode is 12–17 minutes and takes roughly 20–40 minutes to render on GitHub's runner
 - YouTube requires disclosing realistic altered or synthetic content; for this fictional, clearly-narrated series the description already states it is AI-assisted fiction

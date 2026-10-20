@@ -1,0 +1,23 @@
+{
+  "series_name": "The Last Signal",
+  "genre": "mystery, suspense, atmospheric, historical noir, cinematic",
+  "core_theme": "A buried transmission from the past begins to rewrite the present, and the city will not let it stay silent.",
+  "location": "A coastal city built over a forgotten military installation",
+  "narrator_voice": "cinematic, grounded, bleak, reflective, tense",
+  "essential_elements": [
+    "buried signal",
+    "old military installation",
+    "forgotten archive",
+    "missing personnel logs",
+    "someone still listening",
+    "a family legacy",
+    "a city trying to hide the truth"
+  ],
+  "story_rules": [
+    "Every episode reveals a clue, not random information.",
+    "No empty filler or generic narration.",
+    "The past must impact the present in a meaningful way.",
+    "The central mystery must deepen with each episode.",
+    "Every episode must end with a haunting unresolved question."
+  ]
+}

@@ -35,7 +35,7 @@ A free-tier **`GEMINI_API_KEY`** is enough to run the whole channel. Get one at 
 | `generate_video.py` | Scene images, voiceover, thumbnail, video rendering |
 | `upload_video.py` | YouTube upload + thumbnail |
 | `providers.py` | Gemini / OpenAI / ElevenLabs / gTTS calls and provider order |
-| `auth.py` | Optional one-time helper to get a refresh token on a computer |
+| `auth.py` | One-time sign-in on a computer: opens Google in your browser and saves the refresh token to `.env` |
 | `series_bible.json` | Series world, tone and rules (edit to steer the story) |
 | `series_state.json` | Current episode number and story so far (updated automatically) |
 | `assets/stock/` | Optional licensed video clips used as visuals |
@@ -76,7 +76,16 @@ You can do this in Safari with Google's OAuth Playground, so no Python is needed
 
 Note: while the consent screen is in "Testing" mode, Google expires refresh tokens after 7 days. To keep the daily upload working, publish the app (OAuth consent screen > **Publish app**). An unverified app is fine for your own channel; you will just see a warning when you sign in.
 
-Alternative on a computer: put `client_secret.json` (Desktop app type) in this folder and run `pip install google-auth-oauthlib && python auth.py`.
+### Alternative: on a computer with `auth.py`
+
+1. In Google Cloud **Credentials**, create an OAuth client ID of type **Desktop app** and download it into this folder as `client_secret.json`.
+2. Run:
+   ```bash
+   pip install -r requirements.txt
+   python auth.py
+   ```
+3. Your browser opens. Sign in with the account that owns the channel and allow access.
+4. `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET` and `YOUTUBE_REFRESH_TOKEN` are written to `.env` (other values in it are kept). `.env` is git-ignored, so also copy these three into the GitHub repo secrets for the daily workflow.
 
 ### Adding repo secrets from the iPhone
 

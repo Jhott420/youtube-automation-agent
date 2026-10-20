@@ -1,0 +1,100 @@
+# Storytelling YouTube Automation
+
+A daily AI storytelling YouTube automation for the serialized mystery **The Last Signal**.
+
+Every day GitHub Actions:
+
+1. Reads `series_bible.json` (the world and rules) and `series_state.json` (where the story left off)
+2. Writes the next episode's title and script with OpenAI (`story_engine.py`)
+3. Narrates it with Google TTS and renders a 1280x720 video (`generate_video.py`)
+4. Uploads it to YouTube as **private** (`upload_video.py`)
+5. Commits the updated `series_state.json` back to the repo so tomorrow's episode continues the story
+
+Nothing runs on your phone. You manage everything from the GitHub app or Safari.
+
+## Files
+
+| File | Purpose |
+| --- | --- |
+| `run_daily.py` | Entry point the workflow runs |
+| `story_engine.py` | Title + script generation, series state |
+| `generate_video.py` | Voiceover + video rendering |
+| `upload_video.py` | YouTube upload |
+| `auth.py` | Optional one-time helper to get a refresh token on a computer |
+| `series_bible.json` | Series world, tone and rules (edit to steer the story) |
+| `series_state.json` | Current episode number and story so far (updated automatically) |
+| `assets/stock/` | Optional licensed video clips used as visuals |
+| `../.github/workflows/daily_story_upload.yml` | The daily schedule (must live at the repo root) |
+
+## Setup
+
+1. Create a GitHub repo
+2. Add all files
+3. Create Google Cloud project
+4. Enable YouTube Data API v3
+5. Create OAuth 2.0 Client ID
+6. Download the JSON and save it as `client_secret.json`
+7. Keep it private. **Do not commit `client_secret.json`** (it is in `.gitignore`). You only need it to read the client ID and secret, or to run `auth.py`.
+8. Add these repo secrets:
+   - OPENAI_API_KEY
+   - YOUTUBE_CLIENT_ID
+   - YOUTUBE_CLIENT_SECRET
+   - YOUTUBE_REFRESH_TOKEN
+9. Run the workflow manually once
+10. If it works, switch to public
+
+### Getting the YouTube refresh token from an iPhone
+
+You can do this in Safari with Google's OAuth Playground, so no Python is needed:
+
+1. In Google Cloud Console > **APIs & Services > OAuth consent screen**, set it up (External), and add your channel's Google account under **Test users**.
+2. In **Credentials > Create credentials > OAuth client ID**, choose **Web application**.
+   Under **Authorized redirect URIs** add `https://developers.google.com/oauthplayground`.
+   Copy the **Client ID** and **Client secret**.
+3. Open https://developers.google.com/oauthplayground in Safari.
+4. Tap the gear icon (top right), tick **Use your own OAuth credentials**, and paste the client ID and secret.
+5. In **Step 1**, paste these scopes into the "Input your own scopes" box and tap **Authorize APIs**:
+   `https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube`
+6. Sign in with the account that owns the YouTube channel and allow access.
+7. In **Step 2**, tap **Exchange authorization code for tokens** and copy the **Refresh token**.
+
+Note: while the consent screen is in "Testing" mode, Google expires refresh tokens after 7 days. To keep the daily upload working, publish the app (OAuth consent screen > **Publish app**). An unverified app is fine for your own channel; you will just see a warning when you sign in.
+
+Alternative on a computer: put `client_secret.json` (Desktop app type) in this folder and run `pip install google-auth-oauthlib && python auth.py`.
+
+### Adding repo secrets from the iPhone
+
+The GitHub mobile app cannot edit secrets, so use Safari:
+`github.com/<you>/<repo>` > **Settings** > **Secrets and variables** > **Actions** > **New repository secret**.
+(Request the desktop site from the "aA" menu if Settings is hidden.)
+
+## Managing it from your iPhone
+
+- **Run now:** GitHub app > repo > **Actions** > *Daily Storytelling Upload* > **Run workflow**.
+- **Check a run:** open the run in the Actions tab to see logs. The rendered video is attached to each run as the `story-episode` artifact for 7 days.
+- **Steer the story:** edit `series_bible.json` (tone, rules, elements) or `series_state.json` (add facts to `completed_story_points`, change `last_theme`) in the GitHub app and commit.
+- **Change the time:** edit the `cron` line in `.github/workflows/daily_story_upload.yml`. It is UTC; `0 9 * * *` is 09:00 UTC daily.
+- **Pause:** Actions > *Daily Storytelling Upload* > "..." > **Disable workflow**.
+- **Go public:** change `"privacyStatus": "private"` to `"public"` in `upload_video.py` once you are happy with a few episodes.
+- **Add visuals:** upload `.mp4`/`.mov` clips you have the rights to into `assets/stock/`. Up to four are used and cycled under the narration. Without them, styled title cards are used.
+
+## Running locally (optional)
+
+```bash
+cd storytelling-channel
+cp .env.example .env   # fill in values
+pip install -r requirements.txt
+python run_daily.py
+```
+
+Requires ImageMagick (with the `@*` path policy removed from `policy.xml`), ffmpeg and DejaVu fonts. The workflow installs these automatically on GitHub.
+
+## Notes
+- Start with private uploads
+- Only use royalty-safe or licensed visual assets
+- Keep the story world coherent
+- Let the series build over time
+- YouTube API projects get 10,000 quota units/day by default; one upload costs about 1,600, so one video a day is well within limits
+- New, unverified API projects may have uploads locked to private until Google audits the app. If videos stay private after you switch to public, request an audit in the YouTube API Services form
+- A typical episode is 12–17 minutes and takes roughly 20–40 minutes to render on GitHub's runner
+- YouTube requires disclosing realistic altered or synthetic content; for this fictional, clearly-narrated series the description already states it is AI-assisted fiction

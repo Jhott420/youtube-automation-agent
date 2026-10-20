@@ -1,0 +1,75 @@
+name: Daily Storytelling Upload
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-story-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    defaults:
+      run:
+        working-directory: storytelling-channel
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+      YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+      YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system packages (ImageMagick, ffmpeg, fonts)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick ffmpeg fonts-dejavu-core
+          # moviepy's TextClip passes text to ImageMagick as @file, which the default policy blocks.
+          for policy in /etc/ImageMagick-*/policy.xml; do
+            sudo sed -i '/pattern="@\*"/d' "$policy"
+          done
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run story generator and upload
+        run: python run_daily.py
+
+      - name: Save series progress
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add series_state.json
+          if git diff --cached --quiet; then
+            echo "No state change to commit."
+          else
+            git commit -m "Episode $(python -c 'import json; print(json.load(open("series_state.json"))["episode_number"])') published"
+            git push
+          fi
+
+      - name: Keep video as downloadable artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: story-episode
+          path: storytelling-channel/output/
+          retention-days: 7
+          if-no-files-found: ignore

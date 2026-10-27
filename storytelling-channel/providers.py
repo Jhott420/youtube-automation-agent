@@ -1,8 +1,11 @@
 import base64
+import http.client
 import json
 import os
+import re
 import subprocess
 import tempfile
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -18,6 +21,25 @@ GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 # Long scripts are narrated in chunks; providers cap input length per request.
 TTS_CHUNK_CHARS = 3000
+
+# Tried in order when the chosen text model is overloaded (same list as the main app).
+GEMINI_TEXT_FALLBACKS = ["gemini-3.7-flash", "gemini-3.5-flash-lite", "gemini-3.1-pro-preview"]
+
+# Temporary server-side errors worth retrying. 429 is not retried: on the free tier it
+# usually means the quota for that model is used up (or is 0), so waiting doesn't help.
+RETRYABLE_STATUS = {500, 502, 503, 504}
+
+# Free-tier quota is counted per model, so a second TTS model doubles the daily allowance.
+GEMINI_TTS_FALLBACKS = ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"]
+RETRY_DELAYS = [10, 30, 90]
+
+# Text models that were overloaded or out of quota earlier in this run.
+unavailable_text_models = set()
+
+class HTTPStatusError(RuntimeError):
+    def __init__(self, status, message):
+        super().__init__(message)
+        self.status = status
 
 def env(name, default=None):
     return os.getenv(name) or default
@@ -50,10 +72,23 @@ def post_json(url, payload, headers, timeout=300):
             return response.read()
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", "replace")[:500]
-        raise RuntimeError(f"HTTP {error.code} from {url.split('?')[0]}: {detail}") from None
+        raise HTTPStatusError(error.code, f"HTTP {error.code} from {url.split('?')[0]}: {detail}") from None
+    except (urllib.error.URLError, http.client.HTTPException, ConnectionError, TimeoutError) as error:
+        # Dropped or timed-out connections are treated like a 503 so they get retried.
+        raise HTTPStatusError(503, f"Connection to {url.split('?')[0]} failed: {error}") from None
+
+def post_json_with_retry(url, payload, headers):
+    for delay in RETRY_DELAYS + [None]:
+        try:
+            return post_json(url, payload, headers)
+        except HTTPStatusError as error:
+            if error.status not in RETRYABLE_STATUS or delay is None:
+                raise
+            print(f"HTTP {error.status}, retrying in {delay}s...")
+            time.sleep(delay)
 
 def gemini_generate(model, payload):
-    raw = post_json(
+    raw = post_json_with_retry(
         f"{GEMINI_API_BASE}/{model}:generateContent",
         payload,
         {"x-goog-api-key": env("GEMINI_API_KEY")},
@@ -86,15 +121,49 @@ def generate_text(prompt, system=None, temperature=0.9, max_tokens=2600):
         }
         if system:
             payload["systemInstruction"] = {"parts": [{"text": system}]}
-        parts = gemini_generate(env("GEMINI_TEXT_MODEL", "gemini-3.7-flash"), payload)
-        text = "".join(p.get("text", "") for p in parts if not p.get("thought"))
-        if not text.strip():
-            raise RuntimeError("Gemini returned no text")
-        return text.strip()
+        preferred = env("GEMINI_TEXT_MODEL", GEMINI_TEXT_FALLBACKS[0])
+        models = [preferred] + [m for m in GEMINI_TEXT_FALLBACKS if m != preferred]
+        # Skip models that already failed this run, but always keep the last one to try.
+        models = [m for m in models if m not in unavailable_text_models] or models[-1:]
+        for model in models:
+            try:
+                parts = gemini_generate(model, payload)
+            except HTTPStatusError as error:
+                if error.status not in RETRYABLE_STATUS | {429} or model == models[-1]:
+                    raise
+                print(f"{model} unavailable ({error.status}), trying {models[models.index(model) + 1]}")
+                unavailable_text_models.add(model)
+                continue
+            text = "".join(p.get("text", "") for p in parts if not p.get("thought"))
+            if text.strip():
+                return text.strip()
+        raise RuntimeError("Gemini returned no text")
 
     raise RuntimeError("No text provider configured. Set GEMINI_API_KEY or OPENAI_API_KEY.")
 
 # ---------- Speech ----------
+
+def clean_narration(text):
+    """Strip screenplay/markdown leftovers so the voice only reads the story."""
+    kept = []
+    for line in text.splitlines():
+        line = line.strip()
+        if re.fullmatch(r"[-*_=#\s]*", line):  # blank lines and dividers
+            kept.append("")
+            continue
+        if line.startswith("#"):  # headings
+            continue
+        if re.fullmatch(r"\*{0,2}[A-Z][A-Z0-9 .'’()/:-]{1,40}\*{0,2}:?", line):  # NARRATOR (V.O.), COLD OPEN
+            continue
+        if re.match(r"\*{0,2}(title|episode|format|target runtime|runtime)\*{0,2}\s*:", line, re.I):
+            continue
+        line = re.sub(r"^\*{0,2}[A-Z][A-Z .'’()]{1,30}\*{0,2}:\s*", "", line)  # "NARRATOR: text"
+        line = re.sub(r"\[[^\]]*\]", "", line)  # [COLD OPEN], [Music swells]
+        line = re.sub(r"^\*?\([^)]*\)\*?$", "", line)  # whole-line (stage direction)
+        line = re.sub(r"\((audio|sfx|sound|music|beat|pause|v\.o\.)[^)]*\)", "", line, flags=re.I)
+        line = re.sub(r"[*_`]+", "", line).strip()
+        kept.append(line)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(kept)).strip()
 
 def split_for_tts(text, limit=TTS_CHUNK_CHARS):
     chunks, current = [], ""
@@ -114,7 +183,7 @@ def split_for_tts(text, limit=TTS_CHUNK_CHARS):
     return chunks
 
 def elevenlabs_tts(text, out_path):
-    audio = post_json(
+    audio = post_json_with_retry(
         f"https://api.elevenlabs.io/v1/text-to-speech/{env('ELEVENLABS_VOICE_ID')}",
         {
             "text": text,
@@ -133,8 +202,8 @@ def openai_tts(text, out_path):
     )
     Path(out_path).write_bytes(response.content)
 
-def gemini_tts(text, out_path):
-    parts = gemini_generate(env("GEMINI_TTS_MODEL", "gemini-3.1-flash-tts-preview"), {
+def gemini_tts(text, out_path, model=None):
+    parts = gemini_generate(model or env("GEMINI_TTS_MODEL", GEMINI_TTS_FALLBACKS[0]), {
         "contents": [{"parts": [{"text": text}]}],
         "generationConfig": {
             "responseModalities": ["AUDIO"],
@@ -143,7 +212,7 @@ def gemini_tts(text, out_path):
     })
     audio = next((p["inlineData"]["data"] for p in parts if p.get("inlineData", {}).get("data")), None)
     if not audio:
-        raise RuntimeError("Gemini TTS returned no audio data")
+        raise RuntimeError("Gemini TTS returned no audio data (usually its safety filter)")
     # Gemini returns raw PCM (24kHz, mono, 16-bit); encode it with the bundled FFmpeg.
     pcm_path = f"{out_path}.pcm"
     Path(pcm_path).write_bytes(base64.b64decode(audio))
@@ -156,35 +225,81 @@ def gtts_tts(text, out_path):
     from gtts import gTTS
     gTTS(text=text, lang="en", slow=False).save(str(out_path))
 
-def speech_provider():
+def speech_providers():
+    """Every configured voice, best first. gTTS is always last and needs no key."""
+    providers = []
     if has_elevenlabs():
-        return "ElevenLabs", elevenlabs_tts, TTS_CHUNK_CHARS
+        providers.append(("ElevenLabs", elevenlabs_tts, TTS_CHUNK_CHARS))
     if has_openai():
-        return "OpenAI", openai_tts, TTS_CHUNK_CHARS
+        providers.append(("OpenAI", openai_tts, TTS_CHUNK_CHARS))
     if has_gemini():
-        return "Gemini", gemini_tts, TTS_CHUNK_CHARS
+        # Free-tier quota is per model (10 requests/day), so each Gemini TTS model is its own fallback.
+        preferred = env("GEMINI_TTS_MODEL", GEMINI_TTS_FALLBACKS[0])
+        for model in [preferred] + [m for m in GEMINI_TTS_FALLBACKS if m != preferred]:
+            providers.append((f"Gemini {model}", lambda t, o, m=model: gemini_tts(t, o, m), TTS_CHUNK_CHARS))
     # gTTS splits text internally, so it can take the whole script at once.
-    return "gTTS", gtts_tts, None
+    providers.append(("gTTS", gtts_tts, None))
+    return providers
 
 def generate_speech(text, out_path):
-    name, synthesize, limit = speech_provider()
-    chunks = split_for_tts(text, limit) if limit else [text]
-    print(f"Narrating with {name} ({len(chunks)} part(s))")
+    text = clean_narration(text)
+    for name, synthesize, limit in speech_providers():
+        chunks = split_for_tts(text, limit) if limit else [text]
+        print(f"Narrating with {name} ({len(chunks)} part(s))")
+        try:
+            narrate_parts(name, synthesize, chunks, out_path)
+            return name
+        except HTTPStatusError as error:
+            if error.status not in (401, 402, 403, 429):
+                raise
+            # Out of quota or credits: redo the whole episode with the next voice so it stays consistent.
+            print(f"{name} unavailable (HTTP {error.status}), switching to the next voice")
+    raise RuntimeError("No voice provider could narrate the episode")
 
-    if len(chunks) == 1:
-        synthesize(chunks[0], out_path)
-        return name
-
+def narrate_parts(name, synthesize, chunks, out_path):
     with tempfile.TemporaryDirectory() as tmp:
         parts = []
         for i, chunk in enumerate(chunks):
-            part = Path(tmp) / f"part_{i:03d}.mp3"
-            synthesize(chunk, part)
-            parts.append(part)
+            parts.extend(synthesize_part(name, synthesize, chunk, Path(tmp), f"{i:03d}"))
         playlist = Path(tmp) / "parts.txt"
         playlist.write_text("".join(f"file '{p}'\n" for p in parts))
         ffmpeg("-f", "concat", "-safe", "0", "-i", str(playlist), "-c:a", "libmp3lame", "-q:a", "2", str(out_path))
-    return name
+
+def synthesize_part(name, synthesize, text, tmp, label, attempts=2):
+    """Narrate one part, falling back so one rejected passage can't sink the episode.
+
+    Retries, then splits the passage in half (Gemini's safety filter sometimes rejects
+    a whole passage over one line), then uses gTTS for whatever still fails.
+    Quota/auth errors are raised straight away so the caller can switch voices.
+    Returns WAV files at a common format so parts from different voices join cleanly.
+    """
+    for attempt in range(attempts):
+        try:
+            raw = tmp / f"part_{label}.mp3"
+            synthesize(text, raw)
+            return [to_wav(raw)]
+        except HTTPStatusError as error:
+            if error.status in (401, 402, 403, 429):
+                raise
+            print(f"{name} could not narrate part {label} (attempt {attempt + 1}): {str(error)[:200]}")
+        except Exception as error:
+            print(f"{name} could not narrate part {label} (attempt {attempt + 1}): {str(error)[:200]}")
+
+    if len(text) > 600:
+        middle = text.rfind(". ", 0, len(text) // 2 + 200)
+        middle = middle + 1 if middle > 0 else len(text) // 2
+        return (synthesize_part(name, synthesize, text[:middle].strip(), tmp, f"{label}a", 1)
+                + synthesize_part(name, synthesize, text[middle:].strip(), tmp, f"{label}b", 1))
+
+    print(f"Using gTTS for part {label}")
+    raw = tmp / f"part_{label}_gtts.mp3"
+    gtts_tts(text, raw)
+    return [to_wav(raw)]
+
+def to_wav(path):
+    wav = path.with_suffix(".wav")
+    ffmpeg("-i", str(path), "-ar", "24000", "-ac", "1", "-c:a", "pcm_s16le", str(wav))
+    return wav
 
 # ---------- Images ----------
 

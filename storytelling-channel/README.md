@@ -22,9 +22,10 @@ A free-tier **`GEMINI_API_KEY`** is enough to run the whole channel. Get one at 
 | Narration | ElevenLabs → OpenAI → Gemini → gTTS (free, no key) | `gemini-3.1-flash-tts-preview`, voice `Kore` (24 kHz, encoded to MP3 with the FFmpeg bundled with moviepy) |
 | Scene images + thumbnail | OpenAI → Gemini → styled title cards | `gemini-3.1-flash-image` |
 
-- If image generation fails (for example, your Gemini plan doesn't include images), the episode still publishes with title-card visuals.
+- **Images are not free.** Free-tier Gemini keys get 0 image requests, so episodes use title-card visuals and a plain thumbnail until you enable billing (or add an OpenAI key). To skip the attempt entirely, set the `SCENE_IMAGE_COUNT` variable to `0`.
 - Models and voice can be changed without editing code: add repo **Variables** (Settings > Secrets and variables > Actions > **Variables** tab) named `GEMINI_TEXT_MODEL`, `GEMINI_IMAGE_MODEL`, `GEMINI_TTS_MODEL`, `GEMINI_TTS_VOICE`, `ELEVENLABS_TTS_MODEL` or `SCENE_IMAGE_COUNT` (default 6; `0` turns images off). See `.env.example`.
-- Long scripts are narrated in ~3,000-character parts and joined, so one episode uses about 5 TTS requests, 3 text requests and up to 6 image requests per day.
+- **Voice limits:** free-tier Gemini allows 10 narration requests per day *per model*. An episode is cleaned of any stage directions, split into ~3,000-character parts (usually 4–5) and joined. If `gemini-3.1-flash-tts-preview` runs out, the whole episode is narrated with `gemini-2.5-flash-preview-tts` instead (its own 10/day), then gTTS as a last resort, so each episode keeps one voice.
+- **Reliability:** busy Gemini servers (503) are retried with backoff, and text falls back from `gemini-3.7-flash` to `gemini-3.5-flash-lite` and `gemini-3.1-pro-preview`. If Gemini's safety filter rejects one passage, it is retried, split, and only that passage falls back to gTTS.
 
 ## Files
 
@@ -122,6 +123,6 @@ Requires ImageMagick (with the `@*` path policy removed from `policy.xml`), ffmp
 - Let the series build over time
 - YouTube API projects get 10,000 quota units/day by default; one upload costs about 1,600, so one video a day is well within limits
 - New, unverified API projects may have uploads locked to private until Google audits the app. If videos stay private after you switch to public, request an audit in the YouTube API Services form
-- Free-tier Gemini has daily request limits; one episode a day stays within them for text and speech. Check current limits at https://ai.google.dev/gemini-api/docs/rate-limits
+- Free-tier Gemini has daily request limits; one episode a day stays within them for text and speech. Avoid manual test runs on the same day as the scheduled one, since they share the 10/day voice allowance. Check current limits at https://ai.google.dev/gemini-api/docs/rate-limits
 - A typical episode is 12–17 minutes and takes roughly 20–40 minutes to render on GitHub's runner
 - YouTube requires disclosing realistic altered or synthetic content; for this fictional, clearly-narrated series the description already states it is AI-assisted fiction

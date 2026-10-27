@@ -56,6 +56,11 @@ def generate_story_script(series_name, episode_number, last_theme, story_points)
     - no filler
     - must escalate the mystery
     - finish with a haunting, unforgettable ending
+
+    Format:
+    - this text is read aloud by a single narrator voice exactly as written
+    - output only the spoken narration as plain prose paragraphs
+    - no title, headings, scene labels, speaker names, stage directions, sound cues or markdown
     """
     return generate_text(
         prompt,

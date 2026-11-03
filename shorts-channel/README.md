@@ -1,6 +1,8 @@
 # Daily Shorts (4 per day)
 
-Every day, GitHub Actions writes, renders and uploads **4 YouTube Shorts**. YouTube then publishes them at 4 separate times so they don't compete with each other.
+Every day, GitHub Actions writes and renders **4 YouTube Shorts**. **Nothing is uploaded automatically.** Open the run under **Actions → Daily Shorts** and download the `daily-shorts` artifact. It holds each MP4 plus a `.txt` with its title, description and tags, ready to paste into YouTube.
+
+If you later want automatic uploads, run the workflow manually with **upload** ticked. The Shorts are then scheduled for the times below.
 
 | Slot (UTC) | US Eastern (EDT) |
 | --- | --- |
@@ -52,11 +54,11 @@ It uses the **same 4 repo secrets** as the storytelling channel. If those alread
 
 Then:
 
-1. **Test first.** Go to **Actions → Daily Shorts → Run workflow**, tick **dry_run** and run it. Download the `daily-shorts` artifact and watch the 4 videos.
-2. Run it again without dry_run to upload for real.
-3. After that it runs automatically every day at 08:17 UTC.
+1. **Get a batch now:** go to **Actions → Daily Shorts → Run workflow**. Pushing to this branch also starts a batch.
+2. Download the `daily-shorts` artifact from the run page, watch the videos and upload the ones you like.
+3. A new batch is rendered automatically every day at 08:17 UTC.
 
-### Privacy setting
+### Privacy setting (only when uploading)
 
 Set an Actions **variable** (not a secret) named `SHORTS_PRIVACY` to one of these:
 

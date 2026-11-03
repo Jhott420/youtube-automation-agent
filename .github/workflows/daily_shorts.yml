@@ -1,14 +1,23 @@
 name: Daily Shorts (4 per day)
 
+# Renders 4 Shorts and saves them as a downloadable "daily-shorts" artifact
+# (MP4 + a .txt with title, description and tags for each). Nothing is uploaded
+# to YouTube unless you run it manually with "upload" ticked.
+
 on:
   schedule:
-    # Once a day; the 4 Shorts are uploaded together and YouTube publishes
-    # them at the times in shorts-channel/shorts_config.json.
     - cron: '17 8 * * *'
+  push:
+    # Pushing changes to the Shorts code on this branch renders a batch right away.
+    branches: [claude/daily-viral-shorts]
+    paths:
+      - 'shorts-channel/**'
+      - '!shorts-channel/shorts_state.json'
+      - '.github/workflows/daily_shorts.yml'
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: 'Render only, do not upload (videos are saved as a workflow artifact)'
+      upload:
+        description: 'Also upload to YouTube (off = render only, download from the run page)'
         type: boolean
         default: false
       count:
@@ -38,8 +47,8 @@ jobs:
       YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
       YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      SHORTS_UPLOAD: ${{ inputs.upload && '1' || '0' }}
       SHORTS_PRIVACY: ${{ vars.SHORTS_PRIVACY || 'scheduled' }}
-      SHORTS_DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
       SHORTS_COUNT: ${{ inputs.count || '4' }}
 
     steps:
@@ -72,11 +81,11 @@ jobs:
         run: python fetch_backgrounds.py
         continue-on-error: true
 
-      - name: Write, render and schedule Shorts
+      - name: Write and render Shorts
         run: python run_shorts.py
 
-      - name: Save Shorts history
-        if: always() && env.SHORTS_DRY_RUN != '1'
+      - name: Save Shorts history (so topics don't repeat)
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -84,16 +93,18 @@ jobs:
           if git diff --cached --quiet; then
             echo "No history change to commit."
           else
-            git commit -m "Shorts: $(python -c 'import json; print(json.load(open("shorts_state.json"))["total_published"])') total"
+            git commit -m "Shorts: $(python -c 'import json; print(json.load(open("shorts_state.json"))["total_published"])') made"
             git pull --rebase
             git push
           fi
 
-      - name: Keep Shorts as downloadable artifact
+      - name: Save Shorts for download
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: daily-shorts
-          path: shorts-channel/output/*.mp4
-          retention-days: 7
+          path: |
+            shorts-channel/output/*.mp4
+            shorts-channel/output/*.txt
+          retention-days: 14
           if-no-files-found: ignore

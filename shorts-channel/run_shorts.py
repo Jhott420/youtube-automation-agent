@@ -1,9 +1,13 @@
-"""Daily entry point: write, render and schedule 4 YouTube Shorts.
+"""Daily entry point: write and render 4 YouTube Shorts.
+
+By default nothing is uploaded: each Short is saved to output/ with a matching
+.txt file holding its title, description and tags, ready to upload by hand.
 
 Env:
-  OPENAI_API_KEY, YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, YOUTUBE_REFRESH_TOKEN
-  SHORTS_PRIVACY   scheduled (default) | public | unlisted | private
-  SHORTS_DRY_RUN   1 = write and render only, never upload
+  OPENAI_API_KEY   required
+  SHORTS_UPLOAD    1 = also upload to YouTube (needs the YOUTUBE_* secrets). Default: off
+  SHORTS_PRIVACY   scheduled (default) | public | unlisted | private  (only with SHORTS_UPLOAD=1)
+  SHORTS_DRY_RUN   1 = don't record topics in shorts_state.json (for testing)
 """
 
 import json
@@ -34,8 +38,8 @@ def save(path, data):
         f.write("\n")
 
 
-def check_env(dry_run):
-    required = ["OPENAI_API_KEY"] + ([] if dry_run else
+def check_env(upload):
+    required = ["OPENAI_API_KEY"] + ([] if not upload else
                                      ["YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET", "YOUTUBE_REFRESH_TOKEN"])
     missing = [n for n in required if not os.getenv(n)]
     if missing:
@@ -80,8 +84,9 @@ def build_description(short, fmt):
 
 def main():
     dry_run = os.getenv("SHORTS_DRY_RUN") == "1"
+    upload = os.getenv("SHORTS_UPLOAD") == "1"
     privacy = os.getenv("SHORTS_PRIVACY", "scheduled")
-    check_env(dry_run)
+    check_env(upload)
 
     from render_short import render_short
     from shorts_writer import write_short
@@ -98,7 +103,7 @@ def main():
     slots = publish_slots(config["publish_times_utc"], count)
 
     youtube = None
-    if not dry_run:
+    if upload:
         from upload_short import get_youtube_service, upload_short
         youtube = get_youtube_service()
 
@@ -112,7 +117,7 @@ def main():
             short = None
             for attempt in range(3):  # retry if the script runs too long for a Short
                 short = write_short(fmt, previous_topics, config["target_words"], characters)
-                path = OUTPUT / f"short_{datetime.now(timezone.utc):%Y%m%d}_{i + 1}.mp4"
+                path = OUTPUT / f"short_{datetime.now(timezone.utc):%Y%m%d_%H%M}_{i + 1}_{fmt['id']}.mp4"
                 try:
                     video_path, duration = render_short(short, path, config["voice"], config["voice_speed"], characters)
                     break
@@ -131,29 +136,40 @@ def main():
                 "duration": round(duration, 1),
             }
 
-            if dry_run:
+            description = build_description(short, fmt)
+            tags = fmt["tags"] + ["shorts"]
+            Path(video_path).with_suffix(".txt").write_text(
+                f"TITLE:\n{title}\n\nDESCRIPTION:\n{description}\n\nTAGS:\n{', '.join(tags)}\n\n"
+                f"SCRIPT:\n" + "\n".join(f"{l['speaker']}: {l['text']}" for l in short.get("lines", []))
+                + ("" if short.get("lines") else short["script"]) + "\n",
+                encoding="utf-8",
+            )
+
+            if not upload:
                 record["video_id"] = None
-                print(f"{label} dry run, saved {video_path}")
+                print(f"{label} saved {video_path} (not uploaded)")
             else:
                 video_id = upload_short(
-                    youtube, video_path, title, build_description(short, fmt),
-                    fmt["tags"] + ["shorts"], publish_at=slots[i], privacy=privacy,
+                    youtube, video_path, title, description,
+                    tags, publish_at=slots[i], privacy=privacy,
                 )
                 record["video_id"] = video_id
                 record["publish_at"] = slots[i] if privacy == "scheduled" else None
                 print(f"{label} uploaded https://youtube.com/shorts/{video_id} -> {record['publish_at'] or privacy}")
 
-            state["history"].append(record)
-            state["total_published"] += 1
             previous_topics.append(short["topic"])
             made += 1
-            save(STATE, state)  # save after each short so a later failure keeps earlier progress
+            if not dry_run:
+                state["history"].append(record)
+                state["total_published"] += 1
+                save(STATE, state)  # save after each short so a later failure keeps earlier progress
         except Exception as exc:  # noqa: BLE001 - one bad short should not stop the others
             failures.append(f"{label}: {exc}")
             print(f"{label} FAILED: {exc}")
 
-    state["history"] = state["history"][-400:]
-    save(STATE, state)
+    if not dry_run:
+        state["history"] = state["history"][-400:]
+        save(STATE, state)
     print(f"\nMade {made}/{count} shorts.")
     if failures:
         print("Failures:\n  " + "\n  ".join(failures))

@@ -102,6 +102,7 @@ def main():
         from upload_short import get_youtube_service, upload_short
         youtube = get_youtube_service()
 
+    characters = config.get("characters") if config.get("style") == "duo" else None
     previous_topics = [h["topic"] for h in state["history"]]
     made, failures = 0, []
 
@@ -110,10 +111,10 @@ def main():
         try:
             short = None
             for attempt in range(3):  # retry if the script runs too long for a Short
-                short = write_short(fmt, previous_topics, config["target_words"])
+                short = write_short(fmt, previous_topics, config["target_words"], characters)
                 path = OUTPUT / f"short_{datetime.now(timezone.utc):%Y%m%d}_{i + 1}.mp4"
                 try:
-                    video_path, duration = render_short(short, path, config["voice"], config["voice_speed"])
+                    video_path, duration = render_short(short, path, config["voice"], config["voice_speed"], characters)
                     break
                 except ValueError as exc:
                     print(f"{label} attempt {attempt + 1}: {exc}")

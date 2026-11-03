@@ -1,38 +1,105 @@
 {
   "shorts_per_day": 4,
+  "style": "duo",
   "timezone_note": "Publish times are UTC. 16:00, 19:00, 22:00 and 01:00 UTC are noon, 3pm, 6pm and 9pm US Eastern (EDT).",
-  "publish_times_utc": ["16:00", "19:00", "22:00", "01:00"],
+  "publish_times_utc": [
+    "16:00",
+    "19:00",
+    "22:00",
+    "01:00"
+  ],
   "voice": "onyx",
   "voice_speed": 1.12,
-  "target_words": [85, 120],
+  "target_words": [
+    85,
+    120
+  ],
+  "characters": {
+    "TOAST": {
+      "personality": "a smug, deadpan kitchen toaster who became sentient and now believes he is the smartest being alive. Bored, sarcastic, speaks in short devastating sentences, secretly knows real facts and loves correcting people.",
+      "voice": "onyx",
+      "pitch": 0.9,
+      "speed": 1.15,
+      "color": [
+        255,
+        170,
+        60
+      ],
+      "avatar": "toaster"
+    },
+    "GUS": {
+      "personality": "a loud, hyper, wildly overconfident city pigeon who gets everything slightly wrong, panics easily, invents nonsense theories, and asks the questions the viewer is thinking.",
+      "voice": "echo",
+      "pitch": 1.3,
+      "speed": 1.2,
+      "color": [
+        120,
+        230,
+        255
+      ],
+      "avatar": "pigeon"
+    }
+  },
   "formats": [
     {
       "id": "sounds-fake-fact",
       "label": "True fact that sounds fake",
-      "brief": "One real, well-documented fact that sounds made up (history, science, nature, the human body, space). Only use facts you are highly confident are true and that appear in mainstream reference sources. No rumours, no disputed statistics, no 'scientists say' without a specific finding. Build up to the most surprising detail and save it for the last line.",
+      "brief": "One real, well-documented fact that sounds made up (history, science, nature, the human body, space). Only use facts you are highly confident are true and that appear in mainstream reference sources. No rumours, no disputed statistics. Build up to the most surprising detail and save it for the last line.",
+      "duo_brief": "TOAST drops one real, well-documented fact that sounds made up (history, science, nature, the human body, space). GUS refuses to believe it, invents an absurd wrong explanation, and TOAST shuts it down with an even crazier true detail at the end. The fact itself must be accurate and appear in mainstream reference sources; only the jokes are silly.",
       "is_fiction": false,
-      "tags": ["facts", "did you know", "mind blowing facts", "true facts", "history facts", "science facts"]
+      "tags": [
+        "facts",
+        "brainrot",
+        "did you know",
+        "mind blowing facts",
+        "funny facts",
+        "animation"
+      ]
     },
     {
       "id": "twist-story",
       "label": "40-second twist story",
-      "brief": "An original, short, first-person fictional story (creepy, eerie or mind-bending, never gory) with a twist in the final line that recontextualises everything. The last line should make the viewer want to rewatch from the start.",
+      "brief": "An original, short, first-person fictional story (creepy, eerie or mind-bending, never gory) with a twist in the final line that recontextualises everything.",
+      "duo_brief": "GUS breathlessly tells TOAST about something insane that 'definitely happened' to him today. TOAST keeps poking holes in it. The story escalates absurdly and ends on a twist line that recontextualises everything and makes viewers rewatch.",
       "is_fiction": true,
-      "tags": ["scary story", "twist ending", "short horror story", "creepy story", "story time"]
+      "tags": [
+        "brainrot",
+        "funny story",
+        "twist ending",
+        "story time",
+        "comedy",
+        "animation"
+      ]
     },
     {
       "id": "impossible-choice",
       "label": "Impossible choice",
-      "brief": "A genuinely hard 'what would you do' dilemma or 'would you rather' with real stakes on both sides. Lay out option A and option B vividly, add one complication halfway through that makes it harder, and end by asking the viewer to pick A or B in the comments. Both sides must feel defensible so people argue.",
+      "brief": "A genuinely hard 'would you rather' with real stakes on both sides, ending by asking the viewer to pick A or B in the comments.",
+      "duo_brief": "TOAST hits GUS with an absurd but genuinely hard 'would you rather'. They each take a side and argue it chaotically, a ridiculous complication makes it even harder halfway through, and the last line asks viewers to settle it in the comments: A or B.",
       "is_fiction": true,
-      "tags": ["would you rather", "what would you do", "hard choices", "dilemma", "comment your answer"]
+      "tags": [
+        "would you rather",
+        "brainrot",
+        "hard choices",
+        "comment your answer",
+        "funny",
+        "animation"
+      ]
     },
     {
-      "id": "last-signal-teaser",
-      "label": "The Last Signal teaser",
-      "brief": "A self-contained eerie micro-scene from the fictional series The Last Signal: a coastal city built over a forgotten military installation, where a buried transmission from the past starts reaching people in the present. Use one concrete clue (a log entry, a recording, a number station, a missing person). End on an unresolved, chilling question that makes people want the full story on the channel.",
-      "is_fiction": true,
-      "tags": ["the last signal", "mystery", "creepy", "unsolved", "story", "lore"]
+      "id": "absurd-hypothetical",
+      "label": "Absurd hypothetical, real science",
+      "brief": "An absurd 'what would happen if' question answered with real, mainstream science.",
+      "duo_brief": "GUS asks an absurd 'what would happen if...' question (e.g. if the Earth stopped spinning, if you fell into a black hole, if you ate only one food forever). TOAST answers step by step with real, mainstream, accurate science while GUS reacts with growing panic. End on the most shocking accurate consequence.",
+      "is_fiction": false,
+      "tags": [
+        "what if",
+        "brainrot",
+        "science",
+        "hypothetical",
+        "funny science",
+        "animation"
+      ]
     }
   ]
 }

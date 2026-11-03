@@ -11,6 +11,19 @@ Every day, GitHub Actions writes, renders and uploads **4 YouTube Shorts**. YouT
 
 You can change these in `shorts_config.json` → `publish_times_utc`.
 
+## Style: brainrot duo (default)
+
+Every Short is a fast back-and-forth between two **original** characters, each with their own voice and drawn avatar:
+
+| Character | Personality | Voice |
+| --- | --- | --- |
+| **TOAST** | A smug, deadpan toaster who thinks he's a genius. He knows the real facts. | OpenAI `onyx`, pitched down, orange captions |
+| **GUS** | A loud, overconfident pigeon who gets everything wrong and panics. | OpenAI `echo`, pitched up, blue captions |
+
+To change the characters, edit `characters` in `shorts_config.json` (personality, `voice`, `pitch`, `speed`, `color`). Set `"style": "narrator"` to go back to a single narrator.
+
+Don't swap them for characters or voices from existing shows. Copying them gets Shorts claimed, demonetized or struck, and that kills a channel faster than any algorithm.
+
 ## What each Short is built to do
 
 These are the patterns that drive Shorts retention and replays. The pipeline uses all of them on every Short:
@@ -25,7 +38,7 @@ These are the patterns that drive Shorts retention and replays. The pipeline use
   1. `sounds-fake-fact`: a true fact that sounds made up
   2. `twist-story`: a 40-second original story with a twist ending
   3. `impossible-choice`: a would-you-rather style dilemma that gets people arguing in the comments
-  4. `last-signal-teaser`: an eerie micro-scene that funnels viewers to *The Last Signal*
+  4. `absurd-hypothetical`: "what if..." questions answered with real science
 - **No repeats.** Topics are saved in `shorts_state.json`, and the writer is told to avoid them.
 
 ## Setup
@@ -55,7 +68,7 @@ Set an Actions **variable** (not a secret) named `SHORTS_PRIVACY` to one of thes
 
 ## Making them look better (optional but recommended)
 
-- **Background video:** drop vertical or horizontal `.mp4` clips you have the rights to use into `assets/stock/`. Gameplay, satisfying loops and nature b-roll all work well. One is picked at random and cropped to 9:16. Without clips, an animated gradient is used.
+- **Background video:** for the brainrot look, drop gameplay you **recorded yourself** (parkour, racing, satisfying loops) into `assets/stock/`. Re-uploading other creators' gameplay clips gets Content ID claims. One is picked at random and cropped to 9:16. Without clips, an animated gradient is used.
 - **Music:** drop royalty-free tracks into `assets/music/`. They're mixed in quietly under the voice.
 
 ## Files

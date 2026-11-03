@@ -380,10 +380,16 @@ def make_gradient_background(fmt_id, out_path):
 
 def background_input(fmt_id, work_dir, duration):
     """ffmpeg input args and filter for the background (licensed stock clip if present)."""
-    clips = [p for ext in ("*.mp4", "*.mov", "*.mkv", "*.webm") for p in STOCK_DIR.glob(ext)]
+    clips = [p for ext in ("*.mp4", "*.mov", "*.mkv", "*.webm") for p in STOCK_DIR.rglob(ext)]
     if clips:
         clip = random.choice(clips)
-        args = ["-stream_loop", "-1", "-i", str(clip)]
+        # Start at a random point so one long gameplay recording gives many different backgrounds.
+        try:
+            length = _duration(clip)
+        except (RuntimeError, ValueError):
+            length = 0
+        start = random.uniform(0, length - duration - 1) if length > duration + 5 else 0
+        args = ["-ss", f"{start:.2f}", "-stream_loop", "-1", "-i", str(clip)]
         vf = (f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
               f"eq=brightness=-0.12:saturation=1.1,fps={FPS},setsar=1")
         return args, vf

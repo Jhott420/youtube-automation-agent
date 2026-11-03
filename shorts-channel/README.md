@@ -68,8 +68,21 @@ Set an Actions **variable** (not a secret) named `SHORTS_PRIVACY` to one of thes
 
 ## Making them look better (optional but recommended)
 
-- **Background video:** for the brainrot look, drop gameplay you **recorded yourself** (parkour, racing, satisfying loops) into `assets/stock/`. Re-uploading other creators' gameplay clips gets Content ID claims. One is picked at random and cropped to 9:16. Without clips, an animated gradient is used.
+- **Background video (gameplay):** see *Gameplay backgrounds* below.
 - **Music:** drop royalty-free tracks into `assets/music/`. They're mixed in quietly under the voice.
+
+## Gameplay backgrounds
+
+Don't use other people's gameplay videos (YouTube rips, TikTok compilations, Twitch clips). They get Content ID claims and can earn copyright strikes. There are two safe sources, and you can use both:
+
+**1. Your own gameplay (best, looks like real brainrot).** Most big publishers, including Mojang (Minecraft), Epic (Fortnite), Roblox and Riot, allow monetized videos of gameplay *you* record. Check each game's video policy.
+- Record 5–15 minutes of something visually busy: parkour, racing, building, or a satisfying grind. Skip cutscenes and in-game music, because licensed songs inside games still trigger claims.
+- Put the files in `assets/stock/`. A random 30–45 second stretch is picked each time, so one 10-minute recording gives dozens of different backgrounds.
+- GitHub rejects files over 100 MB. Compress them first (`ffmpeg -i in.mp4 -vf scale=-2:1080 -crf 28 -an out.mp4`) or use Git LFS.
+
+**2. Automatic free gaming footage from Pexels.** Get a free API key at <https://www.pexels.com/api/> and add it as the repo secret `PEXELS_API_KEY`. Each run then downloads a few gaming, neon and satisfying clips, which are free to use commercially under the Pexels license, and keeps them between runs. This isn't footage of specific hit games, but it adds motion with zero copyright risk.
+
+If neither is set up, an animated gradient is used.
 
 ## Files
 
@@ -78,6 +91,7 @@ Set an Actions **variable** (not a secret) named `SHORTS_PRIVACY` to one of thes
 | `run_shorts.py` | Entry point: plan → write → render → upload, for all 4 Shorts |
 | `shorts_writer.py` | Script prompt (hook, loop, retention rules) |
 | `render_short.py` | Voice, word timings (Whisper), captions, background, MP4 |
+| `fetch_backgrounds.py` | Downloads free-to-use background clips from Pexels |
 | `upload_short.py` | YouTube upload with scheduled publish |
 | `shorts_config.json` | Formats, publish times, voice, length |
 | `shorts_state.json` | History of every Short (format, topic, video ID). Updated automatically |

@@ -94,3 +94,4 @@ data/thumbnails/
 # Shorts pipeline render output
 shorts-channel/output/
 __pycache__/
+shorts-channel/assets/stock/pexels/

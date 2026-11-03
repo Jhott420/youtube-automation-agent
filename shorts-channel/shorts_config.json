@@ -1,0 +1,38 @@
+{
+  "shorts_per_day": 4,
+  "timezone_note": "Publish times are UTC. 16:00, 19:00, 22:00 and 01:00 UTC are noon, 3pm, 6pm and 9pm US Eastern (EDT).",
+  "publish_times_utc": ["16:00", "19:00", "22:00", "01:00"],
+  "voice": "onyx",
+  "voice_speed": 1.12,
+  "target_words": [85, 120],
+  "formats": [
+    {
+      "id": "sounds-fake-fact",
+      "label": "True fact that sounds fake",
+      "brief": "One real, well-documented fact that sounds made up (history, science, nature, the human body, space). Only use facts you are highly confident are true and that appear in mainstream reference sources. No rumours, no disputed statistics, no 'scientists say' without a specific finding. Build up to the most surprising detail and save it for the last line.",
+      "is_fiction": false,
+      "tags": ["facts", "did you know", "mind blowing facts", "true facts", "history facts", "science facts"]
+    },
+    {
+      "id": "twist-story",
+      "label": "40-second twist story",
+      "brief": "An original, short, first-person fictional story (creepy, eerie or mind-bending, never gory) with a twist in the final line that recontextualises everything. The last line should make the viewer want to rewatch from the start.",
+      "is_fiction": true,
+      "tags": ["scary story", "twist ending", "short horror story", "creepy story", "story time"]
+    },
+    {
+      "id": "impossible-choice",
+      "label": "Impossible choice",
+      "brief": "A genuinely hard 'what would you do' dilemma or 'would you rather' with real stakes on both sides. Lay out option A and option B vividly, add one complication halfway through that makes it harder, and end by asking the viewer to pick A or B in the comments. Both sides must feel defensible so people argue.",
+      "is_fiction": true,
+      "tags": ["would you rather", "what would you do", "hard choices", "dilemma", "comment your answer"]
+    },
+    {
+      "id": "last-signal-teaser",
+      "label": "The Last Signal teaser",
+      "brief": "A self-contained eerie micro-scene from the fictional series The Last Signal: a coastal city built over a forgotten military installation, where a buried transmission from the past starts reaching people in the present. Use one concrete clue (a log entry, a recording, a number station, a missing person). End on an unresolved, chilling question that makes people want the full story on the channel.",
+      "is_fiction": true,
+      "tags": ["the last signal", "mystery", "creepy", "unsolved", "story", "lore"]
+    }
+  ]
+}

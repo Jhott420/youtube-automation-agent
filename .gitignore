@@ -90,3 +90,7 @@ data/thumbnails/
 
 # Claude worktrees
 .claude/worktrees/
+
+# Shorts pipeline render output
+shorts-channel/output/
+__pycache__/

@@ -1,8 +1,6 @@
 import json
-import os
-from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from providers import generate_text
 
 def load_json(path):
     with open(path, "r", encoding="utf-8") as f:
@@ -28,13 +26,8 @@ def generate_title(series_name, episode_number):
     Location: {bible["location"]}
     Output only the title, no quotes.
     """
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role":"user","content":prompt}],
-        temperature=0.9,
-        max_tokens=80
-    )
-    return response.choices[0].message.content.strip()
+    title = generate_text(prompt, temperature=0.9, max_tokens=80)
+    return title.splitlines()[0].strip().strip('"')
 
 def generate_story_script(series_name, episode_number, last_theme, story_points):
     bible = load_bible()
@@ -63,17 +56,38 @@ def generate_story_script(series_name, episode_number, last_theme, story_points)
     - no filler
     - must escalate the mystery
     - finish with a haunting, unforgettable ending
+
+    Format:
+    - this text is read aloud by a single narrator voice exactly as written
+    - output only the spoken narration as plain prose paragraphs
+    - no title, headings, scene labels, speaker names, stage directions, sound cues or markdown
     """
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role":"system","content":"You are a master storyteller and YouTube scriptwriter."},
-            {"role":"user","content":prompt}
-        ],
+    return generate_text(
+        prompt,
+        system="You are a master storyteller and YouTube scriptwriter.",
         temperature=0.9,
         max_tokens=2600
     )
-    return response.choices[0].message.content.strip()
+
+def generate_scene_prompts(title, script, count=4):
+    bible = load_bible()
+    prompt = f"""
+    Describe {count} distinct cinematic still images that illustrate key moments of this episode, in story order.
+    Title: {title}
+    Location: {bible["location"]}
+    Genre: {bible["genre"]}
+
+    Script:
+    {script[:6000]}
+
+    Rules:
+    - one image per line, no numbering, no extra text
+    - each line under 40 words: subject, setting, lighting, mood
+    - moody historical-noir photography, no text, no logos, no recognizable real people
+    """
+    lines = generate_text(prompt, temperature=0.8, max_tokens=600).splitlines()
+    scenes = [line.strip(" -*0123456789.\t") for line in lines if len(line.strip()) > 15]
+    return scenes[:count]
 
 def next_episode():
     state = load_state()

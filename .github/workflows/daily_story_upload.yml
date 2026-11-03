@@ -22,10 +22,20 @@ jobs:
         working-directory: storytelling-channel
 
     env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+      ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
       YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
       YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
       YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+      # Optional overrides: repo Settings > Secrets and variables > Actions > Variables
+      GEMINI_TEXT_MODEL: ${{ vars.GEMINI_TEXT_MODEL }}
+      GEMINI_IMAGE_MODEL: ${{ vars.GEMINI_IMAGE_MODEL }}
+      GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL }}
+      GEMINI_TTS_VOICE: ${{ vars.GEMINI_TTS_VOICE }}
+      ELEVENLABS_TTS_MODEL: ${{ vars.ELEVENLABS_TTS_MODEL }}
+      SCENE_IMAGE_COUNT: ${{ vars.SCENE_IMAGE_COUNT }}
 
     steps:
       - name: Checkout repo

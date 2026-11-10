@@ -93,3 +93,5 @@ data/thumbnails/
 
 # Coloring book generator output
 coloring-book/output/
+__pycache__/
+*.pyc

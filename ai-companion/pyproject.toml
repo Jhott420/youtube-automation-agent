@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-companion"
+version = "0.1.0"
+description = "Operator-controlled AI companion chatbot (Claude + Telegram) that always discloses it is an AI."
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=2.0,<3",
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "python-telegram-bot>=21,<23",
+    "typer>=0.12",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "httpx>=0.27"]
+semantic = ["sentence-transformers>=3"]
+
+[project.scripts]
+admin = "companion.cli:app"
+companion-bot = "companion.telegram_bot:main"
+
+[tool.setuptools]
+packages = ["companion"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,8 @@
+.env
+data/*.db
+data/*.db-*
+config/*.bak
+config/*.tmp
+__pycache__/
+.pytest_cache/
+*.egg-info/

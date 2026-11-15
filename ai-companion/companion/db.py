@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS messages (
     content     TEXT NOT NULL,
     created_at  TEXT NOT NULL,
     summarized  INTEGER NOT NULL DEFAULT 0,
-    flag        TEXT                   -- e.g. 'crisis'; flagged turns are never summarized
+    flag        TEXT                   -- optional marker; flagged turns are never summarized
 );
 CREATE INDEX IF NOT EXISTS idx_messages_user ON messages(user_id, id);
 

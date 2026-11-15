@@ -60,10 +60,6 @@ class Settings:
     embedder: str = "hashing"         # "hashing" (default) or "sentence-transformers"
     embedding_model: str = "all-MiniLM-L6-v2"
 
-    # --- Safety ----------------------------------------------------------
-    rate_limit_per_minute: int = 8
-    rate_limit_per_day: int = 300
-
     # --- Interfaces -------------------------------------------------------
     telegram_bot_token: str | None = None
     telegram_allowed_user_ids: set[str] = field(default_factory=set)  # empty = anyone
@@ -84,8 +80,6 @@ class Settings:
             memory_min_score=_float("MEMORY_MIN_SCORE", cls.memory_min_score),
             embedder=os.getenv("EMBEDDER", cls.embedder),
             embedding_model=os.getenv("EMBEDDING_MODEL", cls.embedding_model),
-            rate_limit_per_minute=_int("RATE_LIMIT_PER_MINUTE", cls.rate_limit_per_minute),
-            rate_limit_per_day=_int("RATE_LIMIT_PER_DAY", cls.rate_limit_per_day),
             telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN") or None,
             telegram_allowed_user_ids=_id_set("TELEGRAM_ALLOWED_USER_IDS"),
             admin_api_token=os.getenv("ADMIN_API_TOKEN") or None,

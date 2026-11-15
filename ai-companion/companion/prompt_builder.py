@@ -102,12 +102,9 @@ def build_prompt(
     history: list[Message],
     user_text: str,
     display_name: str | None = None,
-    extra_instruction: str | None = None,
 ) -> PromptBundle:
     static = f"{render_persona(persona)}\n\n{SAFETY_RULES}"
     dynamic = render_memories(memories, display_name)
-    if extra_instruction:
-        dynamic += f"\n\n## Correction for this reply\n{extra_instruction}"
     return PromptBundle(
         system=[
             {"type": "text", "text": static, "cache_control": {"type": "ephemeral"}},

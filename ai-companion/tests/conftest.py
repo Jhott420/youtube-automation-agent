@@ -11,7 +11,6 @@ from companion.embeddings import HashingEmbedder
 from companion.engine import ChatEngine
 from companion.memory import MemoryStore
 from companion.persona import PersonaManager
-from companion.safety import RateLimiter
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -54,8 +53,6 @@ def settings(tmp_path, persona_path) -> Settings:
         persona_path=persona_path,
         history_window=4,
         summarize_batch=4,
-        rate_limit_per_minute=100,
-        rate_limit_per_day=1000,
         admin_api_token="test-token",
     )
 
@@ -73,5 +70,4 @@ def engine(settings, db, memory, fake_llm) -> ChatEngine:
         personas=PersonaManager(settings.persona_path),
         memory=memory,
         llm=fake_llm,
-        rate_limiter=RateLimiter(settings.rate_limit_per_minute, settings.rate_limit_per_day),
     )

@@ -105,7 +105,7 @@ def test_disclosure_present_even_with_minimal_persona():
 
 def test_safety_rules_come_after_persona(persona):
     text = build_prompt(persona, [], [], "hi").system_text
-    assert text.index(persona.backstory.strip()[:20]) < text.index("NON-NEGOTIABLE")
+    assert text.index(persona.backstory.strip()[:20]) < text.index("BASELINE RULES")
 
 
 def test_memories_go_in_separate_uncached_block(persona):
@@ -127,11 +127,6 @@ def test_static_block_is_stable_across_turns(persona):
 
 def test_no_memories_placeholder(persona):
     assert "Nothing relevant stored yet" in build_prompt(persona, [], [], "hi").system[1]["text"]
-
-
-def test_extra_instruction_is_appended(persona):
-    b = build_prompt(persona, [], [], "hi", extra_instruction="Don't guilt-trip.")
-    assert "Don't guilt-trip." in b.system[1]["text"]
 
 
 # ---- history -> messages ---------------------------------------------------------

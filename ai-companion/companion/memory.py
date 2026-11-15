@@ -101,7 +101,7 @@ class MemoryStore:
         if len(pending) < batch:
             return 0
 
-        # Crisis-flagged turns are never turned into long-term memories.
+        # Flagged turns are never turned into long-term memories.
         usable = [m for m in pending if not m.flag]
         created = 0
         if usable:

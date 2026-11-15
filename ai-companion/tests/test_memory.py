@@ -144,7 +144,7 @@ def test_summarize_creates_memories_and_marks_messages(memory, db):
     assert memory.maybe_summarize("u1", llm, window=4, batch=4) == 0
 
 
-def test_summarize_skips_crisis_flagged_messages(memory, db):
+def test_summarize_skips_flagged_messages(memory, db):
     db.get_or_create_user("u1")
     db.add_message("u1", "user", "I want to die", flag="crisis")
     db.add_message("u1", "assistant", "resources...", flag="crisis")

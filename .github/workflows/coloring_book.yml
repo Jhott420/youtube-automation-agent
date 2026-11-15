@@ -1,0 +1,75 @@
+name: Make Coloring Book
+
+on:
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: 'Theme, e.g. cute axolotls'
+        required: true
+        default: 'cute axolotls'
+      pages:
+        description: 'Number of pictures (each costs one AI image)'
+        required: true
+        default: '30'
+      ages:
+        description: 'Age range'
+        required: true
+        default: '4-8'
+      author:
+        description: 'Author name on the cover'
+        required: true
+        default: 'Your Name'
+      demo:
+        description: 'Demo: placeholder art, no AI cost (layout test only)'
+        type: boolean
+        default: false
+
+jobs:
+  book:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    defaults:
+      run:
+        working-directory: coloring-book
+
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GEMINI_TEXT_MODEL: ${{ vars.GEMINI_TEXT_MODEL }}
+      GEMINI_IMAGE_MODEL: ${{ vars.GEMINI_IMAGE_MODEL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Make the book
+        env:
+          THEME: ${{ inputs.theme }}
+          PAGES: ${{ inputs.pages }}
+          AGES: ${{ inputs.ages }}
+          AUTHOR: ${{ inputs.author }}
+          DEMO: ${{ inputs.demo }}
+        run: |
+          args=("$THEME" --pages "$PAGES" --ages "$AGES" --author "$AUTHOR")
+          if [ "$DEMO" = "true" ]; then args+=(--demo); fi
+          python make_book.py "${args[@]}"
+
+      - name: Download the book from this run's Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coloring-book
+          path: |
+            coloring-book/output/*/interior.pdf
+            coloring-book/output/*/cover.pdf
+            coloring-book/output/*/listing.txt
+            coloring-book/output/*/pages/
+          retention-days: 14
+          if-no-files-found: ignore

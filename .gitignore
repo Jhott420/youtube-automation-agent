@@ -90,3 +90,8 @@ data/thumbnails/
 
 # Claude worktrees
 .claude/worktrees/
+
+# Coloring book generator output
+coloring-book/output/
+__pycache__/
+*.pyc

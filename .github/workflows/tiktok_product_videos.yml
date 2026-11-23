@@ -1,0 +1,84 @@
+name: TikTok Product Videos
+
+# Run by hand from the Actions tab (works from the GitHub app on your phone).
+# The finished videos are attached to the run as a downloadable zip.
+on:
+  workflow_dispatch:
+    inputs:
+      product:
+        description: Which product
+        type: choice
+        options:
+          - all
+          - spin-scrubber
+          - cat-window-perch
+          - heatless-curler
+        default: all
+      video:
+        description: One video id (leave blank for all of that product's videos)
+        type: string
+        required: false
+      silent:
+        description: No voiceover (add a trending sound in the TikTok app instead)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    defaults:
+      run:
+        working-directory: tiktok-shop
+
+    env:
+      # Optional. Without any keys the free gTTS voice is used.
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+      ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+      GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL }}
+      GEMINI_TTS_VOICE: ${{ vars.GEMINI_TTS_VOICE }}
+      ELEVENLABS_TTS_MODEL: ${{ vars.ELEVENLABS_TTS_MODEL }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-dejavu-core
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Render videos
+        env:
+          PRODUCT: ${{ inputs.product }}
+          VIDEO: ${{ inputs.video }}
+          SILENT: ${{ inputs.silent }}
+        run: |
+          args=()
+          if [ "$PRODUCT" = "all" ]; then args+=(--all); else args+=(--product "$PRODUCT"); fi
+          if [ -n "$VIDEO" ]; then args+=(--video "$VIDEO"); fi
+          if [ "$SILENT" = "true" ]; then args+=(--silent); fi
+          python make_video.py "${args[@]}"
+
+      - name: Upload videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiktok-videos
+          path: tiktok-shop/output/
+          retention-days: 14
+          if-no-files-found: warn

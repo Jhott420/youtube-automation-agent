@@ -1,0 +1,186 @@
+{
+  "products": [
+    {
+      "id": "spin-scrubber",
+      "name": "Electric Spin Scrubber",
+      "price": "$34.99",
+      "hashtags": ["#cleaninghacks", "#cleantok", "#bathroomcleaning", "#tiktokshop", "#giftideas"],
+      "videos": [
+        {
+          "id": "grout-check",
+          "caption": "Grout used to take me an hour. Not anymore.",
+          "beats": [
+            {"text": "I haven't scrubbed grout by hand in 3 months", "say": "I haven't scrubbed grout by hand in three months."},
+            {"text": "One pass. That's it.", "say": "Watch this. One pass, and the grout is clean again."},
+            {"text": "Different heads for corners and tubs", "say": "It comes with different heads for corners, tubs and tile."},
+            {"text": "Cordless + the handle extends", "say": "It's cordless, and the handle extends, so no more kneeling."}
+          ],
+          "cta": "Tap the orange cart"
+        },
+        {
+          "id": "split-screen",
+          "caption": "10 minutes vs 30 seconds",
+          "beats": [
+            {"text": "By hand: 10 minutes", "say": "By hand, this tub takes me ten minutes."},
+            {"text": "With this: 30 seconds", "say": "With this, about thirty seconds."},
+            {"text": "Let it spin. Wipe. Done.", "say": "Let it spin, rinse, and you're done."}
+          ],
+          "cta": "Link in the cart"
+        },
+        {
+          "id": "wish-i-bought-sooner",
+          "caption": "Mad I didn't get this sooner",
+          "beats": [
+            {"text": "Cleaning gadget I'm mad I didn't buy sooner", "say": "This is the cleaning gadget I'm mad I didn't buy sooner."},
+            {"text": "Tub", "say": "The tub."},
+            {"text": "Sink", "say": "The sink."},
+            {"text": "Stovetop", "say": "The stovetop."},
+            {"text": "No more sore knees", "say": "Cordless, swappable heads, and the handle extends, so I'm not on my knees anymore."}
+          ],
+          "cta": "Get one before the holidays"
+        },
+        {
+          "id": "useful-gift",
+          "caption": "Weird gift, but everyone uses it",
+          "beats": [
+            {"text": "Weird gift that's actually useful", "say": "Here's a weird gift that's actually useful."},
+            {"text": "My mom still talks about it", "say": "I got one for my mom, and she still talks about it."},
+            {"text": "Stovetop in seconds", "say": "It cleans the stovetop in seconds."}
+          ],
+          "cta": "Gift idea under $35 - orange cart"
+        },
+        {
+          "id": "shower-door",
+          "caption": "POV: you finally deal with the shower door",
+          "beats": [
+            {"text": "POV: you finally deal with the shower door", "say": "Point of view: you finally deal with the shower door."},
+            {"text": "Soap scum...", "say": "All that soap scum."},
+            {"text": "...gone", "say": "Gone in one sweep."}
+          ],
+          "cta": "Orange cart below"
+        }
+      ]
+    },
+    {
+      "id": "cat-window-perch",
+      "name": "Cat Window Perch",
+      "price": "$29.99",
+      "hashtags": ["#catsoftiktok", "#cattok", "#catlover", "#tiktokshop", "#giftsforcatlovers"],
+      "videos": [
+        {
+          "id": "cat-test",
+          "caption": "The cat has spoken",
+          "beats": [
+            {"text": "Would my cat trust this?", "say": "Would my cat actually trust this?"},
+            {"text": "Sticks on in seconds", "say": "It sticks onto the window in seconds. No drilling."},
+            {"text": "...", "say": "Okay, she's checking it out."},
+            {"text": "Approved", "say": "And she hasn't left it since."}
+          ],
+          "cta": "Cat-approved - orange cart"
+        },
+        {
+          "id": "bird-tv",
+          "caption": "I bought my cat a TV",
+          "beats": [
+            {"text": "I bought my cat a TV", "say": "I bought my cat a TV."},
+            {"text": "Channel: birds", "say": "The only channel is birds."},
+            {"text": "She watches it all day", "say": "She watches it all day."}
+          ],
+          "cta": "Bird TV for $30"
+        },
+        {
+          "id": "windowsill-before-after",
+          "caption": "No more squishing onto the windowsill",
+          "beats": [
+            {"text": "My cat used to cry at the window every morning", "say": "My cat used to cry at the window every single morning."},
+            {"text": "Before: tiny windowsill", "say": "Before, she squished onto this tiny windowsill."},
+            {"text": "After: her own window seat", "say": "Now she has her own window seat."}
+          ],
+          "cta": "Gift for your cat - cart below"
+        },
+        {
+          "id": "install-30-seconds",
+          "caption": "No drill, no tools",
+          "beats": [
+            {"text": "No drilling. No tools.", "say": "No drilling. No tools."},
+            {"text": "Clean the glass", "say": "Clean the glass."},
+            {"text": "Press the suction cups", "say": "Press the suction cups on firmly."},
+            {"text": "Done", "say": "And that's it. Done in thirty seconds."}
+          ],
+          "cta": "Linked in my shop"
+        },
+        {
+          "id": "cat-person-gift",
+          "caption": "Gift for the cat person who has everything",
+          "beats": [
+            {"text": "Gift for the cat person who has everything", "say": "Gift idea for the cat person who has everything."},
+            {"text": "A window seat for the cat", "say": "A window seat, for the cat."},
+            {"text": "Instantly claimed", "say": "Instantly claimed."}
+          ],
+          "cta": "Under $30 - orange cart"
+        }
+      ]
+    },
+    {
+      "id": "heatless-curler",
+      "name": "Heatless Curling Set",
+      "price": "$19.99",
+      "hashtags": ["#heatlesscurls", "#hairtok", "#overnightcurls", "#tiktokshop", "#stockingstuffers"],
+      "videos": [
+        {
+          "id": "night-vs-morning",
+          "caption": "Slept on it. Worth it.",
+          "beats": [
+            {"text": "Wrapped my hair in this last night...", "say": "I wrapped my hair in this last night."},
+            {"text": "Slept on it", "say": "Slept on it."},
+            {"text": "The morning reveal", "say": "And this is the morning reveal."}
+          ],
+          "cta": "$20 - orange cart"
+        },
+        {
+          "id": "tutorial",
+          "caption": "Heatless curls, step by step",
+          "beats": [
+            {"text": "Heatless curls in 60 seconds of effort", "say": "Heatless curls, with about sixty seconds of effort."},
+            {"text": "1. Hair about 80% dry", "say": "Start with hair that's mostly dry."},
+            {"text": "2. Rod on top of your head", "say": "Put the rod on top of your head."},
+            {"text": "3. Twist sections around it", "say": "Twist sections around each side."},
+            {"text": "4. Scrunchies on the ends", "say": "Secure the ends with the scrunchies."},
+            {"text": "5. Sleep. Unwrap.", "say": "Sleep on it, then unwrap."}
+          ],
+          "cta": "The set is in the cart"
+        },
+        {
+          "id": "skip-the-iron",
+          "caption": "Skipping the curling iron this week, day 1",
+          "beats": [
+            {"text": "Skipping the curling iron this week: day 1", "say": "I'm skipping the curling iron this week. Day one."},
+            {"text": "Wrap it up", "say": "Wrap it up at night."},
+            {"text": "Morning", "say": "And here's the morning."}
+          ],
+          "cta": "Following along? It's in my shop"
+        },
+        {
+          "id": "stocking-stuffer",
+          "caption": "Everyone's getting one this year",
+          "beats": [
+            {"text": "Stocking stuffer everyone in my family is getting", "say": "The stocking stuffer everyone in my family is getting this year."},
+            {"text": "Under $20", "say": "It's under twenty dollars."},
+            {"text": "Curls overnight, no heat", "say": "And it gives you curls overnight, with no heat."}
+          ],
+          "cta": "Orange cart"
+        },
+        {
+          "id": "grwm",
+          "caption": "GRWM but my hair was done while I slept",
+          "beats": [
+            {"text": "Get ready with me, but my hair did itself", "say": "Get ready with me, but I did my hair while I slept."},
+            {"text": "Coffee first", "say": "Coffee first."},
+            {"text": "Now the best part", "say": "And now the best part."}
+          ],
+          "cta": "The curler is in the cart"
+        }
+      ]
+    }
+  ]
+}
